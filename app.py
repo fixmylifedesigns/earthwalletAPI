@@ -22,8 +22,12 @@ def create_app():
         app.logger.setLevel(logging.INFO)
         
     if not firebase_admin._apps:
-        cred = credentials.Certificate(app.config["FIREBASE_SERVICE_ACCOUNT"])
-        firebase_admin.initialize_app(cred)
+        firebase_creds = app.config.get("FIREBASE_SERVICE_ACCOUNT")
+        if firebase_creds:
+            cred = credentials.Certificate(firebase_creds)
+            firebase_admin.initialize_app(cred)
+        else:
+            app.logger.warning("FIREBASE_SERVICE_ACCOUNT not found. Firebase will not be initialized.")
     
     # Log configuration on startup
     app.logger.info(f"Firebase Project ID: {app.config.get('FIREBASE_PROJECT_ID')}")
