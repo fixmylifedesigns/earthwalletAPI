@@ -22,4 +22,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-k", "gevent", "-w", "3", "-b", "0.0.0.0:8000", "app:create_app()"]
+CMD ["gunicorn", "-k", "gevent", "-w", "3", "-b", "0.0.0.0:8000", "app:app", "--timeout", "120"]
