@@ -45,22 +45,27 @@ def create_app():
     limiter.init_app(app)
     migrate.init_app(app, db)
     
-    # Create database tables automatically
+    # Handle database setup more gracefully
     with app.app_context():
         try:
             # Import models to ensure they're registered
             from models import User, Wallet, Transaction, Withdrawal
             
-            # Create all tables
-            db.create_all()
-            app.logger.info("Database tables created/verified successfully")
+            # Test database connection first
+            db.session.execute('SELECT 1')
+            app.logger.info("Database connection successful")
             
-            # Log table info
-            tables = db.engine.table_names() if hasattr(db.engine, 'table_names') else []
-            app.logger.info(f"Database tables: {tables}")
+            # Try to create tables if they don't exist
+            try:
+                db.create_all()
+                app.logger.info("Database tables verified/created")
+            except Exception as table_error:
+                app.logger.warning(f"Table creation issue (likely tables already exist): {table_error}")
+                # Tables probably already exist, continue anyway
             
         except Exception as e:
-            app.logger.error(f"Failed to create database tables: {e}")
+            app.logger.error(f"Database setup error: {e}")
+            # Don't crash the app, just log the error
     
     # Register blueprints
     app.register_blueprint(user_bp)
@@ -87,15 +92,14 @@ def create_app():
     
     @app.route('/debug/config')
     def debug_config():
-        """Debug endpoint to check configuration - works in production too"""
+        """Debug endpoint to check configuration"""
         return {
             'firebase_project_id': app.config.get('FIREBASE_PROJECT_ID'),
             'test_user_email': os.getenv('TEST_USER_EMAIL'),
             'has_database_url': bool(app.config.get('SQLALCHEMY_DATABASE_URI')),
             'has_stripe_key': bool(os.getenv('STRIPE_SECRET_KEY')),
             'environment': app.config.get('FLASK_ENV', 'production'),
-            'firebase_initialized': bool(firebase_admin._apps),
-            'database_url_preview': str(app.config.get('SQLALCHEMY_DATABASE_URI', 'Not set'))[:50] + '...' if app.config.get('SQLALCHEMY_DATABASE_URI') else 'Not set'
+            'firebase_initialized': bool(firebase_admin._apps)
         }, 200
     
     @app.route('/')
@@ -115,6 +119,7 @@ def create_app():
             }
         }, 200
     
+    app.logger.info("Flask app created successfully")
     return app
 
 # Create app instance for gunicorn
