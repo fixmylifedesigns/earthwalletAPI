@@ -5,6 +5,7 @@ from routes.wallet import wallet_bp
 from routes.user import user_bp
 from routes.deposit import deposit_bp
 from routes.withdraw import withdraw_bp
+from sqlalchemy import text
 from config import Config
 import os
 import logging
@@ -52,7 +53,6 @@ def create_app():
     migrate.init_app(app, db)
     
     # Handle database setup more gracefully
-# Handle database setup more gracefully
     with app.app_context():
         try:
             # Import models to ensure they're registered
@@ -60,11 +60,12 @@ def create_app():
             
             # Test database connection first
             try:
-                db.session.execute('SELECT 1')
+                from sqlalchemy import text
+                db.session.execute(text('SELECT 1'))
                 app.logger.info("Database connection successful")
             except Exception as db_error:
                 app.logger.error(f"Database connection error: {db_error}")
-                # Continue without database
+                # Continue without failing
             
             # Try to create tables if they don't exist
             try:
@@ -72,11 +73,11 @@ def create_app():
                 app.logger.info("Database tables verified/created")
             except Exception as table_error:
                 app.logger.warning(f"Table creation issue: {table_error}")
-                # Continue without tables
+                # Continue without failing
             
         except Exception as e:
             app.logger.error(f"Database setup error: {e}")
-            # Continue without database setup
+            # Continue without failing
     
     # Register blueprints
     app.register_blueprint(user_bp)
@@ -86,10 +87,10 @@ def create_app():
     
     @app.route('/health')
     def health_check():
-        """Simple health check endpoint"""
+        """Health check endpoint"""
         return {
             'status': 'healthy',
-            'environment': os.environ.get('FLASK_ENV', 'production')
+            'environment': app.config.get('FLASK_ENV', 'production')
         }, 200
     
     @app.route('/debug/config')
