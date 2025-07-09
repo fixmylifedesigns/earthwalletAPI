@@ -17,6 +17,6 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
+EXPOSE 8080
 
-# Use this for proper environment variable expansion
-CMD gunicorn app:app --bind 0.0.0.0:8000 --workers 1 --timeout 120
+CMD bash -c 'gunicorn healthcheck:app --bind 0.0.0.0:8000 --workers 1 & gunicorn app:app --bind 0.0.0.0:8080 --workers 1'
