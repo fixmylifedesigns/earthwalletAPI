@@ -15,12 +15,7 @@ from firebase_admin import credentials
 def create_app():
     app = Flask(__name__)
     app.logger.info("Flask app initialization started")
-    CORS(app,
-        origins=["https://earthwallet.irvingduran.dev", "http://localhost:5173"],
-        supports_credentials=True,
-        allow_headers=["Authorization", "Content-Type"],
-        methods=["GET", "POST", "OPTIONS"])
-    
+    CORS(app)
     app.config.from_object(Config)
     
     # Configure logging for both development and production
