@@ -5,6 +5,7 @@ from routes.wallet import wallet_bp
 from routes.user import user_bp
 from routes.deposit import deposit_bp
 from routes.withdraw import withdraw_bp
+from routes.bottle_detection import bottle_detection_bp 
 from sqlalchemy import text
 from config import Config
 import os
@@ -84,6 +85,7 @@ def create_app():
     app.register_blueprint(wallet_bp)
     app.register_blueprint(deposit_bp)
     app.register_blueprint(withdraw_bp)
+    app.register_blueprint(bottle_detection_bp)
     
     @app.route('/health')
     def health_check():
